@@ -4,6 +4,8 @@ from flask_cors import CORS
 import logging
 
 from agents.rag import process_rag
+from audio import text_to_speech
+from audio.stt import speech_to_text
 from models import APIError
 
 logging.basicConfig(level=logging.INFO)
@@ -38,21 +40,76 @@ def handle_api_error(error: APIError):
 
 
 @app.route("/v1/chat", methods=["POST"])
-def chat():
+def process_chat():
     try:
         json_data = request.get_json()
+
+        conversation_id = request.headers.get("X-Conversation-Id")
+        if not conversation_id:
+            raise APIError("X-Conversation-Id header is required", 400)
 
         message = json_data.get("message")
         if not message:
             raise APIError("Message is required", 400)
-
-        conversation_id = json_data.get("conversation_id")
-        if not conversation_id:
-            raise APIError("Conversation ID is required", 400)
-
         response = process_rag(message, conversation_id)
 
         return jsonify(response)
+    except Exception as e:
+        if isinstance(e, APIError):
+            raise e
+        else:
+            raise APIError(message="Internal server error", details=str(e), code=500)
+
+
+@app.route("/v1/audio", methods=["POST"])
+async def process_audio():
+    try:
+        conversation_id = request.headers.get("X-Conversation-Id")
+        if not conversation_id:
+            raise APIError("X-Conversation-Id header is required", 400)
+
+        if "audio" not in request.files:
+            raise APIError("Audio file is required", 400)
+
+        audio_file = request.files["audio"]
+        if not audio_file.filename:
+            raise APIError("No audio file selected", 400)
+
+        audio_bytes = audio_file.read()
+
+        # Track speech to text time
+        stt_start = time()
+        transcript = await speech_to_text(audio_bytes)
+        stt_time = round(time() - stt_start, 2)
+
+        if transcript is None:
+            raise APIError("Failed to process audio", 500)
+
+        # Track RAG processing time
+        rag_start = time()
+        response = process_rag(transcript, conversation_id)
+        answer = response["answer"]
+        sources = response["sources"]
+        rag_time = round(time() - rag_start, 2)
+
+        # Track text to speech time
+        tts_start = time()
+        audio_bytes = await text_to_speech(answer)
+        tts_time = round(time() - tts_start, 2)
+
+        return jsonify(
+            {
+                "audio": audio_bytes.hex(),
+                "transcript": transcript,
+                "answer": answer,
+                "sources": sources,
+                "exec_time": {
+                    "speech_to_text": stt_time,
+                    "process_rag": rag_time,
+                    "text_to_speech": tts_time,
+                },
+            }
+        )
     except Exception as e:
         if isinstance(e, APIError):
             raise e

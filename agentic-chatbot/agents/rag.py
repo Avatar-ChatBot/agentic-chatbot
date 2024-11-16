@@ -54,4 +54,10 @@ def process_rag(message: str, thread_id: str):
             message.pretty_print()
             final_answer = message.content
 
-    return {"answer": final_answer}
+    if "<|source_sep|>" in final_answer:
+        answer, sources = final_answer.split("<|source_sep|>")
+        final_answer = answer
+    else:
+        sources = ""
+
+    return {"answer": final_answer, "sources": sources}

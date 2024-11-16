@@ -16,16 +16,16 @@ sql_agent = create_react_agent(
 
 
 @tool
-def process_sql(question: str) -> str:
+def process_sql(search_query: str) -> str:
     """Use this tool to retrieve information from the PostgreSQL database.
     Args:
-        question (str): The raw question from the user.
+        search_query (str): The search query to retrieve information from the database.
     Returns:
         str: The answer from the database.
     """
-    print("TOOL: process_sql with question:", question)  # Debug logging
+    print("TOOL: process_sql with search_query:", search_query)  # Debug logging
 
-    inputs = {"messages": [("user", question)]}
+    inputs = {"messages": [("user", search_query)]}
     final_answer = None
 
     for s in sql_agent.stream(

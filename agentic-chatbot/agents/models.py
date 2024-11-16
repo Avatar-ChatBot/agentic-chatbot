@@ -12,7 +12,8 @@ from langchain_together import ChatTogether
 
 load_dotenv()
 
-llm = ChatGroq(model_name="llama-3.2-90b-text-preview", temperature=0)
+# llm = ChatGroq(model_name="llama-3.2-90b-text-preview", temperature=0)
+llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 # llm = ChatGroq(model_name="llama3-groq-70b-8192-tool-use-preview", temperature=0)
 # llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 # llm = ChatTogether(model="meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo", temperature=0)
