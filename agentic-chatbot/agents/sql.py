@@ -1,13 +1,11 @@
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langgraph.prebuilt import create_react_agent
-from langchain import hub
 from langchain.tools import tool
 from agents.models import db, llm_4o_mini
 from prompts.sql import SQL_AGENT_SYSTEM_MESSAGE
 
 toolkit = SQLDatabaseToolkit(db=db, llm=llm_4o_mini)
 tools = toolkit.get_tools()
-prompt_template = hub.pull("langchain-ai/sql-agent-system-prompt")
 state_modifier = SQL_AGENT_SYSTEM_MESSAGE.format(top_k=10)
 
 sql_agent = create_react_agent(
@@ -16,16 +14,16 @@ sql_agent = create_react_agent(
 
 
 @tool
-def process_sql(search_query: str) -> str:
+def process_sql(question: str) -> str:
     """Use this tool to retrieve information from the PostgreSQL database.
     Args:
-        search_query (str): The search query to retrieve information from the database.
+        question (str): The question to retrieve information from the database.
     Returns:
         str: The answer from the database.
     """
-    print("TOOL: process_sql with search_query:", search_query)  # Debug logging
+    print("TOOL: process_sql with question:", question)
 
-    inputs = {"messages": [("user", search_query)]}
+    inputs = {"messages": [("user", question)]}
     final_answer = None
 
     for s in sql_agent.stream(
