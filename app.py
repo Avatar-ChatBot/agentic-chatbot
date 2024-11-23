@@ -8,6 +8,11 @@ from audio import text_to_speech
 from audio.stt import speech_to_text
 from models import APIError
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -42,12 +47,19 @@ def handle_api_error(error: APIError):
 @app.route("/v1/chat", methods=["POST"])
 def process_chat():
     try:
-        json_data = request.get_json()
+        api_key = request.headers.get("X-API-Key")
+        if not api_key:
+            raise APIError("X-API-Key header is required", 400)
 
+        if api_key != os.getenv("API_KEY"):
+            raise APIError("Invalid API key", 401)
+        
         conversation_id = request.headers.get("X-Conversation-Id")
         if not conversation_id:
             raise APIError("X-Conversation-Id header is required", 400)
-
+        
+        json_data = request.get_json()
+        
         message = json_data.get("message")
         if not message:
             raise APIError("Message is required", 400)
@@ -64,6 +76,13 @@ def process_chat():
 @app.route("/v1/audio", methods=["POST"])
 async def process_audio():
     try:
+        api_key = request.headers.get("X-API-Key")
+        if not api_key:
+            raise APIError("X-API-Key header is required", 400)
+
+        if api_key != os.getenv("API_KEY"):
+            raise APIError("Invalid API key", 401)
+
         conversation_id = request.headers.get("X-Conversation-Id")
         if not conversation_id:
             raise APIError("X-Conversation-Id header is required", 400)
