@@ -1,11 +1,11 @@
+from typing import List
+
 from langchain_core.documents import Document
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
-from typing import List
 
-from agents.models import vectorstore, llm
-from agents.sql import process_sql
+from agents.models import llm, vectorstore
 from prompts.rag import RAG_AGENT_SYSTEM_MESSAGE
 
 
@@ -20,12 +20,12 @@ def fetch_documents(search_query: str) -> List[Document]:
         List[Document]: The list of documents fetched from the vector database.
     """
     print("TOOL: fetch documents with search query:", search_query)
-    docs = vectorstore.similarity_search(search_query, k=10)
+    docs = vectorstore.similarity_search_with_score(search_query, k=10)
     return docs
 
 
 memory = MemorySaver()
-tools = [process_sql, fetch_documents]
+tools = [fetch_documents]
 
 rag_agent = create_react_agent(
     llm,

@@ -43,9 +43,7 @@ SEKOLAH ILMU DAN TEKNOLOGI HAYATI – KAMPUS CIREBON (SITH-C)
 SEKOLAH BISNIS DAN MANAJEMEN – KAMPUS CIREBON (SBM-C)
 
 ALWAYS use the asterisk operator (*) to select all columns from the table.
-
-When these codes are mentioned and you need to use them in the query, use the LIKE operator with wildcard operators on both ends (e.g. %STEI%) instead of = operator.
-When a faculty code is mentioned without the suffix (e.g. FMIPA, SITH, SF, etc.), also use the LIKE operator with wildcard operators on both ends (e.g. %FMIPA%).
+When the faculty codes are mentioned and you need to use them in the query or mentioned without the suffix (e.g. FMIPA, SITH, SF, etc.), use the LIKE operator with wildcard operators on both ends (e.g. "Fakultas" LIKE "%STEI%") instead of = operator.
 Use an OR operator between the faculty code and the faculty name.
 
 <|eot_id|>
