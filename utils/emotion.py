@@ -1,11 +1,17 @@
+import io
 import os
 
 import httpx
-from werkzeug.datastructures import FileStorage
+from pydub import AudioSegment
 
 
-async def analyze_emotion(text: str, audio_file: FileStorage) -> str:
-    files = {"file": (audio_file.filename, audio_file)}
+async def analyze_emotion(text: str, audio_bytes: bytes, audio_name: str) -> str:
+    stream = io.BytesIO(audio_bytes)
+    audio = AudioSegment.from_file(stream)
+    compressed_audio = io.BytesIO()
+    audio.export(compressed_audio, format="flac", bitrate="64k")
+    compressed_audio.seek(0)  #
+    files = {"file": (audio_name, compressed_audio)}
     params = {"text": text}
 
     async with httpx.AsyncClient() as client:
@@ -13,4 +19,4 @@ async def analyze_emotion(text: str, audio_file: FileStorage) -> str:
             os.getenv("EMOTION_ANALYSIS_URL") + "/predict", files=files, params=params
         )
 
-    return response.json()["prediction"]
+        return response.json()["prediction"]

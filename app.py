@@ -110,7 +110,9 @@ async def process_audio():
             # async with httpx.AsyncClient() as client:
         emotion_start = time()
         try:
-            emotion = await analyze_emotion(transcript, audio_file)
+            emotion = await analyze_emotion(
+                transcript, audio_bytes, audio_file.filename
+            )
         except Exception as e:
             logger.error(f"Failed to analyze emotion: {str(e)}")
             emotion = "neutral"
