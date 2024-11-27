@@ -27,6 +27,7 @@ def fetch_documents(search_query: str) -> List[Document]:
 memory = MemorySaver()
 tools = [fetch_documents]
 
+
 rag_agent = create_react_agent(
     llm,
     tools,
@@ -35,8 +36,13 @@ rag_agent = create_react_agent(
 )
 
 
-def process_rag(message: str, thread_id: str):
-    inputs = {"messages": [("user", message)]}
+def process_rag(message: str, thread_id: str, emotion: str = "neutral"):
+    inputs = {
+        "messages": [
+            ("system", f"Emosi pengguna: {emotion}"),
+            ("user", message),
+        ],
+    }
     config = {"configurable": {"thread_id": thread_id}}
 
     final_answer = None

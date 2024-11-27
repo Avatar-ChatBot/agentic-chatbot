@@ -1,15 +1,16 @@
+import logging
+import os
 from time import time
+
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import logging
 
 from agents.rag import process_rag
-from audio import text_to_speech
-from audio.stt import speech_to_text
 from models import APIError
-
-import os
-from dotenv import load_dotenv
+from utils import text_to_speech
+from utils.emotion import analyze_emotion
+from utils.stt import speech_to_text
 
 load_dotenv()
 
@@ -53,13 +54,13 @@ def process_chat():
 
         if api_key != os.getenv("API_KEY"):
             raise APIError("Invalid API key", 401)
-        
+
         conversation_id = request.headers.get("X-Conversation-Id")
         if not conversation_id:
             raise APIError("X-Conversation-Id header is required", 400)
-        
+
         json_data = request.get_json()
-        
+
         message = json_data.get("message")
         if not message:
             raise APIError("Message is required", 400)
@@ -87,6 +88,8 @@ async def process_audio():
         if not conversation_id:
             raise APIError("X-Conversation-Id header is required", 400)
 
+        print("request files:", request.files)
+
         if "audio" not in request.files:
             raise APIError("Audio file is required", 400)
 
@@ -104,9 +107,20 @@ async def process_audio():
         if transcript is None:
             raise APIError("Failed to process audio", 500)
 
+            # async with httpx.AsyncClient() as client:
+        emotion_start = time()
+        try:
+            emotion = await analyze_emotion(transcript, audio_file)
+        except Exception as e:
+            logger.error(f"Failed to analyze emotion: {str(e)}")
+            emotion = "neutral"
+        emotion_time = round(time() - emotion_start, 2)
+
         # Track RAG processing time
+        print(f"emotion: {emotion}")
+
         rag_start = time()
-        response = process_rag(transcript, conversation_id)
+        response = process_rag(transcript, conversation_id, emotion)
         answer = response["answer"]
         sources = response["sources"]
         rag_time = round(time() - rag_start, 2)
@@ -124,8 +138,10 @@ async def process_audio():
                 "sources": sources,
                 "exec_time": {
                     "speech_to_text": stt_time,
+                    "emotion_analysis": emotion_time,
                     "process_rag": rag_time,
                     "text_to_speech": tts_time,
+                    "total": round(stt_time + emotion_time + rag_time + tts_time, 2),
                 },
             }
         )
