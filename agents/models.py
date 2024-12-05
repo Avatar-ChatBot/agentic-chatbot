@@ -27,4 +27,4 @@ llm_4o_mini = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 vectorstore = PineconeVectorStore(embedding=embeddings, index_name="informasi-umum-itb")
-db = SQLDatabase.from_uri(os.getenv("SUPABASE_URI"))
+# db = SQLDatabase.from_uri(os.getenv("SUPABASE_URI"))
