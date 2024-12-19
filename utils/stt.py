@@ -3,8 +3,6 @@ import io
 import json
 import os
 
-import scipy.signal
-import soundfile as sf
 import websockets
 from dotenv import load_dotenv
 
@@ -30,16 +28,22 @@ async def send_audio(
 
 
 async def receive_message(ws: websockets.WebSocketClientProtocol):
+
     while True:
-        try:
-            data = json.loads(await ws.recv())
-            message_type = data["type"]
-            if message_type == "result":
-                transcript = data["transcript"]
-                return transcript
-        except Exception as e:
-            print(f"Error receiving message: {e}")
-            break
+        data = json.loads(await ws.recv())  # Receive message
+
+        # Identify message type
+        message_type = data["type"]
+
+        if message_type == "result":
+            transcript = data["transcript"]
+            return transcript
+
+            # Process final transcript
+        elif message_type == "partial":
+            transcript = data["transcript"]
+            # Process partial transcript
+        print(data)
 
 
 async def speech_to_text_streaming(audio_data: bytes) -> str:
