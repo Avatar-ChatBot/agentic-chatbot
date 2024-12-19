@@ -10,7 +10,7 @@ from agents.rag import process_rag
 from models import APIError
 from utils import text_to_speech
 from utils.emotion import analyze_emotion
-from utils.stt import speech_to_text
+from utils.stt import speech_to_text_streaming
 
 load_dotenv()
 
@@ -101,7 +101,7 @@ async def process_audio():
 
         # Track speech to text time
         stt_start = time()
-        transcript = await speech_to_text(audio_bytes)
+        transcript = await speech_to_text_streaming(audio_bytes)
         stt_time = round(time() - stt_start, 2)
 
         if transcript is None:
