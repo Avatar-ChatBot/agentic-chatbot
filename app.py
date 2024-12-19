@@ -23,7 +23,7 @@ CORS(
     resources={r"/*": {"origins": "*"}},
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Conversation-Id"],
+    allow_headers=["Content-Type", "X-Conversation-Id", "X-API-Key"],
 )
 
 
