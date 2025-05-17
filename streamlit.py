@@ -21,7 +21,15 @@ def display_chat_history():
 
 
 def main():
-    st.title("AI Chat Assistant")
+
+    # Create layout with columns for title and icon
+    col1, col2 = st.columns([1, 6])
+
+    with col1:
+        st.image("assets/itb_logo.png", width=80)  # Replace with your icon path
+
+    with col2:
+        st.title("ITB Chatbot")
 
     # Initialize session state
     init_session_state()
