@@ -15,7 +15,8 @@ load_dotenv()
 #     model="accounts/fireworks/models/llama-v3p1-70b-instruct", temperature=0
 # )
 # llm = ChatTogether(model="deepseek-ai/DeepSeek-V3", temperature=0)
-llm = ChatTogether(model="Qwen/QwQ-32B", temperature=0)
+# llm = ChatTogether(model="Qwen/QwQ-32B", temperature=0)
+llm = ChatTogether(model="Qwen/Qwen2.5-72B-Instruct-Turbo", temperature=0)
 llm_4o_mini = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
 # jina_embeddings = JinaEmbeddings(model="jina-embeddings-v3-large")

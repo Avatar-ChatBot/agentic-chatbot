@@ -17,7 +17,9 @@ def display_chat_history():
             st.write(message["content"])
             if message.get("sources"):
                 with st.expander("Sources"):
-                    st.write(message["sources"])
+                    source_list = message["sources"].split(",")
+                    for source in source_list:
+                        st.write(source)
 
 
 def main():

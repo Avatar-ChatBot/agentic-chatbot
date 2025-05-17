@@ -31,7 +31,7 @@ When using documents:
 - Search for relevant documents using the user's question as the search query
 - If there's chat history, reformulate the question and use the reformulated question as a search query instead
 - Use only the documents that are relevant to the user's question
-- Provide the source links of the documents with a <|source_sep|> separator after the answer. Each link should be separated by a comma and is a valid link in the document metadata.
+- Provide the source links of the documents with a <|source_sep|> separator after the answer. Each link should be separated by a comma and is a valid link in the document metadata **that you use to create the answer.**.
 
 ### Exemplary Answer Format
 User: "ada program studi apa saja di STEI?"
