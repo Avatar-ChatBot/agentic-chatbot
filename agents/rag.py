@@ -60,8 +60,11 @@ def process_rag(message: str, thread_id: str, emotion: str = "neutral"):
             message.pretty_print()
             final_answer = message.content
 
+    if "</think>" in final_answer:
+        final_answer = final_answer.split("</think>")[1]
+
     if "<|source_sep|>" in final_answer:
-        answer, sources = final_answer.split("<|source_sep|>")
+        answer, sources = final_answer.rsplit("<|source_sep|>", 1)
         final_answer = answer
     else:
         sources = ""
