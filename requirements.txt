@@ -19,4 +19,4 @@ yarl==1.17.1
 ffmpeg
 pydub
 streamlit
-langchain-together==0.3.0
+langchain-together
