@@ -1,8 +1,8 @@
 import io
-import os
 
 import httpx
 from pydub import AudioSegment
+from config import Config
 
 
 async def analyze_emotion(text: str, audio_bytes: bytes, audio_name: str) -> str:
@@ -16,9 +16,9 @@ async def analyze_emotion(text: str, audio_bytes: bytes, audio_name: str) -> str
         files = {"file": (audio_name, compressed_audio)}
         params = {"text": text}
 
-        async with httpx.AsyncClient(timeout = httpx.Timeout(30)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(Config.EMOTION_TIMEOUT)) as client:
             response = await client.post(
-                os.getenv("EMOTION_ANALYSIS_URL") + "/predict", files=files, params=params
+                Config.EMOTION_ANALYSIS_URL + "/predict", files=files, params=params
             )
 
             return response.json()["prediction"]

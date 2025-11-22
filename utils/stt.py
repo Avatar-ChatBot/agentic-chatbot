@@ -1,14 +1,11 @@
 import asyncio
 import io
 import json
-import os
 
 import websockets
-from dotenv import load_dotenv
+from config import Config
 
-load_dotenv()
-
-PROSA_STT_API_KEY = os.getenv("PROSA_STT_API_KEY")
+PROSA_STT_API_KEY = Config.PROSA_STT_API_KEY
 
 
 async def send_audio(
@@ -47,7 +44,7 @@ async def receive_message(ws: websockets.WebSocketClientProtocol):
 
 
 async def speech_to_text_streaming(audio_data: bytes) -> str:
-    url = "wss://asr-api.stg.prosa.ai/v2/speech/stt/streaming"
+    url = Config.PROSA_STT_URL
 
     headers = {
         "x-api-key": PROSA_STT_API_KEY,

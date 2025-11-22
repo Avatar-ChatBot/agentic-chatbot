@@ -2,11 +2,11 @@ from typing import List
 
 from langchain_core.documents import Document
 from langchain_core.tools import tool
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
 from agents.models import llm, vectorstore
 from prompts.rag import RAG_AGENT_SYSTEM_MESSAGE
+from utils.checkpointer import get_checkpointer
 
 
 @tool
@@ -24,7 +24,7 @@ def fetch_documents(search_query: str) -> List[Document]:
     return docs
 
 
-memory = MemorySaver()
+memory = get_checkpointer()
 tools = [fetch_documents]
 
 

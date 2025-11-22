@@ -1,36 +1,100 @@
 import logging
-import os
+import secrets
+import uuid
 from time import time
 
+from asgiref.wsgi import WsgiToAsgi
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from agents.rag import process_rag
+from config import Config
 from models import APIError
 from utils import text_to_speech
 from utils.emotion import analyze_emotion
+from utils.logging_config import setup_logging
 from utils.stt import speech_to_text_streaming
+from utils.validation import validate_conversation_id, validate_message, validate_audio_file
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+# Setup structured logging
+setup_logging(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Configure CORS
 CORS(
     app,
-    resources={r"/*": {"origins": "*"}},
+    resources={r"/*": {"origins": Config.CORS_ORIGINS}},
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "X-Conversation-Id", "X-API-Key"],
 )
 
+# Configure request size limit
+app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
+
+# Initialize rate limiter
+limiter = Limiter(
+    app=app,
+    key_func=lambda: request.headers.get("X-API-Key", get_remote_address()),
+    default_limits=[f"{Config.RATE_LIMIT_PER_HOUR} per hour"] if Config.RATE_LIMIT_ENABLED else [],
+    enabled=Config.RATE_LIMIT_ENABLED,
+    storage_uri=f"redis://{Config.REDIS_HOST}:{Config.REDIS_PORT}/{Config.REDIS_DB}" if Config.RATE_LIMIT_ENABLED else None,
+)
+
+
+@app.before_request
+def log_request_info():
+    """Log incoming request"""
+    request.start_time = time()
+    request.request_id = str(uuid.uuid4())
+    
+    logger.info(
+        "Incoming request",
+        extra={
+            "request_id": request.request_id,
+            "method": request.method,
+            "path": request.path,
+            "remote_addr": request.remote_addr,
+        }
+    )
+
+
+@app.after_request
+def log_response_info(response):
+    """Log outgoing response"""
+    if hasattr(request, 'start_time'):
+        duration = (time() - request.start_time) * 1000
+        
+        logger.info(
+            "Request completed",
+            extra={
+                "request_id": getattr(request, 'request_id', 'unknown'),
+                "status_code": response.status_code,
+                "duration_ms": round(duration, 2),
+            }
+        )
+    
+    return response
+
 
 @app.errorhandler(APIError)
 def handle_api_error(error: APIError):
     timestamp = int(time())
-    logger.error(f"API Error: {error.message}")
+    logger.error(
+        f"API Error: {error.message}",
+        extra={
+            "request_id": getattr(request, 'request_id', 'unknown'),
+            "error_code": error.code,
+            "error_details": error.details,
+        }
+    )
 
     return (
         jsonify(
@@ -45,25 +109,54 @@ def handle_api_error(error: APIError):
     )
 
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    """Health check endpoint for load balancer"""
+    try:
+        # Check Redis connection
+        from utils.checkpointer import get_redis_client
+        redis_client = get_redis_client()
+        redis_client.ping()
+        redis_status = "ok"
+    except Exception as e:
+        redis_status = f"error: {str(e)}"
+    
+    return jsonify({
+        "status": "healthy",
+        "version": "1.0.0",
+        "redis": redis_status,
+        "timestamp": int(time())
+    })
+
+
+@app.route("/ready", methods=["GET"])
+def readiness_check():
+    """Readiness check endpoint"""
+    return jsonify({"status": "ready"})
+
+
 @app.route("/v1/chat", methods=["POST"])
+@limiter.limit(f"{Config.RATE_LIMIT_PER_HOUR} per hour")
 def process_chat():
     try:
+        # Validate API key (timing-safe comparison)
         api_key = request.headers.get("X-API-Key")
         if not api_key:
             raise APIError("X-API-Key header is required", 400)
 
-        if api_key != os.getenv("API_KEY"):
+        if not secrets.compare_digest(api_key, Config.API_KEY):
             raise APIError("Invalid API key", 401)
 
-        conversation_id = request.headers.get("X-Conversation-Id")
-        if not conversation_id:
-            raise APIError("X-Conversation-Id header is required", 400)
+        # Validate conversation ID
+        conversation_id = validate_conversation_id(
+            request.headers.get("X-Conversation-Id")
+        )
 
         json_data = request.get_json()
 
-        message = json_data.get("message")
-        if not message:
-            raise APIError("Message is required", 400)
+        # Validate message
+        message = validate_message(json_data.get("message"))
+        
         response = process_rag(message, conversation_id)
 
         return jsonify(response)
@@ -71,24 +164,26 @@ def process_chat():
         if isinstance(e, APIError):
             raise e
         else:
+            logger.exception("Internal server error in /v1/chat")
             raise APIError(message="Internal server error", details=str(e), code=500)
 
 
 @app.route("/v1/audio", methods=["POST"])
+@limiter.limit(f"{Config.RATE_LIMIT_PER_HOUR} per hour")
 async def process_audio():
     try:
+        # Validate API key (timing-safe comparison)
         api_key = request.headers.get("X-API-Key")
         if not api_key:
             raise APIError("X-API-Key header is required", 400)
 
-        if api_key != os.getenv("API_KEY"):
+        if not secrets.compare_digest(api_key, Config.API_KEY):
             raise APIError("Invalid API key", 401)
 
-        conversation_id = request.headers.get("X-Conversation-Id")
-        if not conversation_id:
-            raise APIError("X-Conversation-Id header is required", 400)
-
-        print("request files:", request.files)
+        # Validate conversation ID
+        conversation_id = validate_conversation_id(
+            request.headers.get("X-Conversation-Id")
+        )
 
         if "audio" not in request.files:
             raise APIError("Audio file is required", 400)
@@ -98,6 +193,9 @@ async def process_audio():
             raise APIError("No audio file selected", 400)
 
         audio_bytes = audio_file.read()
+        
+        # Validate audio file
+        validate_audio_file(audio_file.filename, len(audio_bytes))
 
         # Track speech to text time
         stt_start = time()
@@ -107,7 +205,7 @@ async def process_audio():
         if transcript is None:
             raise APIError("Failed to process audio", 500)
 
-            # async with httpx.AsyncClient() as client:
+        # Analyze emotion
         emotion_start = time()
         try:
             emotion = await analyze_emotion(
@@ -119,7 +217,7 @@ async def process_audio():
         emotion_time = round(time() - emotion_start, 2)
 
         # Track RAG processing time
-        print(f"emotion: {emotion}")
+        logger.info(f"Detected emotion: {emotion}")
 
         rag_start = time()
         response = process_rag(transcript, conversation_id, emotion)
@@ -151,14 +249,24 @@ async def process_audio():
         if isinstance(e, APIError):
             raise e
         else:
+            logger.exception("Internal server error in /v1/audio")
             raise APIError(message="Internal server error", details=str(e), code=500)
+
+
+# Wrap Flask app with ASGI to support async routes
+asgi_app = WsgiToAsgi(app)
 
 
 def main():
     """Main entry point for the application"""
     try:
         logger.info("Starting Flask application...")
-        app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
+        app.run(
+            host=Config.HOST,
+            port=Config.PORT,
+            debug=Config.FLASK_DEBUG,
+            use_reloader=False
+        )
     except Exception as e:
         logger.error(f"Failed to start application: {str(e)}")
         raise

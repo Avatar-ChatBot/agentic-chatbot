@@ -1,13 +1,10 @@
 import asyncio
 import json
-import os
 import requests
 import websockets
-from dotenv import load_dotenv
+from config import Config
 
-load_dotenv()
-
-PROSA_TTS_API_KEY = os.getenv("PROSA_TTS_API_KEY")
+PROSA_TTS_API_KEY = Config.PROSA_TTS_API_KEY
 
 
 async def text_to_speech(
@@ -15,7 +12,7 @@ async def text_to_speech(
     label: str = "test streaming",
     model_name: str = "tts-ghifari-professional",
 ):
-    url = "wss://tts-api.stg.prosa.ai/v2/speech/tts/streaming"
+    url = Config.PROSA_TTS_URL
     fmt = "wav"
     sample_rate = 8000
 
