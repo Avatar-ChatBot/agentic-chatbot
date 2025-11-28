@@ -4,4 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10.12"
-dependencies = []
+dependencies = [
+    "dotenv>=0.9.9",
+    "pinecone>=8.0.0",
+    "pinecone-client>=6.0.0",
+    "qdrant-client>=1.16.1",
+]

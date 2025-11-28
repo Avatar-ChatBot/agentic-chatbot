@@ -162,3 +162,8 @@ cython_debug/
 #.idea/
 
 *.out
+
+# Qdrant snapshots (large binary files)
+qdrant_snapshots/*.snapshot
+# Keep directory structure but ignore snapshot files
+!qdrant_snapshots/.gitkeep

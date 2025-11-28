@@ -1,0 +1,8 @@
+# This directory stores Qdrant snapshots
+# Snapshot files (*.snapshot) are ignored by git due to their large size
+# 
+# To create a snapshot:
+#   python scripts/create_qdrant_snapshot.py
+#
+# Snapshots are automatically restored on Docker startup if the collection doesn't exist
+

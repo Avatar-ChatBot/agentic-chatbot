@@ -46,9 +46,13 @@ def validate_config():
         required = [
             ("API_KEY", Config.API_KEY),
             ("OPENAI_API_KEY", Config.OPENAI_API_KEY),
-            ("TOGETHER_API_KEY", Config.TOGETHER_API_KEY),
-            ("PINECONE_API_KEY", Config.PINECONE_API_KEY),
+            ("OPENROUTER_API_KEY", Config.OPENROUTER_API_KEY),
+            ("QDRANT_URL", Config.QDRANT_URL),
         ]
+        
+        # QDRANT_API_KEY is optional for local HTTP development
+        if Config.QDRANT_URL and Config.QDRANT_URL.startswith("https://"):
+            required.append(("QDRANT_API_KEY", Config.QDRANT_API_KEY))
         
         missing = []
         for name, value in required:

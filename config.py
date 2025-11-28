@@ -16,12 +16,16 @@ class Config:
     API_KEY = os.getenv("API_KEY")
     
     # LLM Providers
-    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")  # Deprecated - kept for backward compatibility
+    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     
     # Vector Database
-    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-    PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "informasi-umum-itb")
+    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")  # Keep for migration
+    PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "informasi-umum-itb")  # Keep for migration
+    QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
+    QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
+    QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "informasi-umum-itb")
     
     # Speech Services
     PROSA_STT_API_KEY = os.getenv("PROSA_STT_API_KEY")
@@ -66,9 +70,14 @@ class Config:
         required = [
             ("API_KEY", cls.API_KEY),
             ("OPENAI_API_KEY", cls.OPENAI_API_KEY),
-            ("TOGETHER_API_KEY", cls.TOGETHER_API_KEY),
-            ("PINECONE_API_KEY", cls.PINECONE_API_KEY),
+            ("OPENROUTER_API_KEY", cls.OPENROUTER_API_KEY),
+            ("QDRANT_URL", cls.QDRANT_URL),
         ]
+        
+        # QDRANT_API_KEY is only required if using HTTPS
+        # For local HTTP development, it's optional
+        if cls.QDRANT_URL and cls.QDRANT_URL.startswith("https://") and not cls.QDRANT_API_KEY:
+            errors.append("QDRANT_API_KEY is required when using HTTPS")
         
         for name, value in required:
             if not value:

@@ -6,7 +6,9 @@ bind = "0.0.0.0:8000"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Reduced to prevent memory issues with Qdrant client initialization
+# Each worker creates its own Qdrant client, so we limit workers to avoid OOM
+workers = min(multiprocessing.cpu_count() + 1, 4)  # Cap at 4 workers max
 worker_class = "uvicorn.workers.UvicornWorker"
 worker_connections = 1000
 max_requests = 1000
