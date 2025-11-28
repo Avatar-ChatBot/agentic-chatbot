@@ -34,3 +34,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Run with gunicorn
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:application"]
 
+
+
