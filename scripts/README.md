@@ -65,3 +65,5 @@ pip install qdrant-client requests python-dotenv
 - They will automatically load environment variables from `.env` file
 - All scripts include error handling and progress reporting
 
+
+
