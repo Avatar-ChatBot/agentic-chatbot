@@ -78,7 +78,7 @@ services:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-}
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:6333/health" ]
+      test: [ "CMD", "timeout", "3", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/6333" ]
       interval: 10s
       timeout: 3s
       retries: 3

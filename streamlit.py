@@ -29,14 +29,14 @@ def render_sources(sources: list):
 
             # Quote (highlight the specific text used)
             if source.get("quote"):
-                st.info(f"📝 \"{source['quote']}\"")
+                st.info(f'📝 "{source["quote"]}"')
 
             # Original source/link if different from title
             if source.get("source") and source.get("source") != title:
                 st.caption(f"🔗 {source['source']}")
 
             if i < len(sources):
-                st.separator()
+                st.divider()
 
 
 def render_message(message: dict):
@@ -99,11 +99,13 @@ def main():
                     render_sources(response["sources"])
 
                 # Save to history
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": response["answer"],
-                    "sources": response.get("sources", []),
-                })
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": response["answer"],
+                        "sources": response.get("sources", []),
+                    }
+                )
 
 
 if __name__ == "__main__":
