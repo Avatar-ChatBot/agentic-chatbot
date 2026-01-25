@@ -167,3 +167,8 @@ cython_debug/
 qdrant_snapshots/*.snapshot
 # Keep directory structure but ignore snapshot files
 !qdrant_snapshots/.gitkeep
+
+# LLM response cache (pickle files)
+cache/
+
+.cursor/plans/*

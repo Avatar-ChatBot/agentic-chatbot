@@ -1,0 +1,77 @@
+[
+  {
+    "category": "admissions",
+    "question": "Apa itu ITB?",
+    "expected_keywords": ["Institut Teknologi Bandung", "kampus", "universitas"]
+  },
+  {
+    "category": "admissions",
+    "question": "Syarat lulus S2 Informatika apa?",
+    "expected_keywords": ["S2", "Informatika", "kelulusan", "tesis"]
+  },
+  {
+    "category": "fees",
+    "question": "Pembayaran UKT di ITB gmn?",
+    "expected_keywords": ["UKT", "pembayaran", "biaya", "kuliah"]
+  },
+  {
+    "category": "fees",
+    "question": "Biaya kuliah S1 ITB berapa?",
+    "expected_keywords": ["S1", "biaya", "kuliah", "per tahun"]
+  },
+  {
+    "category": "academics",
+    "question": "Ada prodi apa saja di STEI ITB?",
+    "expected_keywords": ["STEI", "Informatika", "Teknik Elektro", "Sistem Informasi", "Teknik Tenaga Listrik", "Teknik Telekomunikasi"]
+  },
+  {
+    "category": "academics",
+    "question": "Program studi apa saja di ITB?",
+    "expected_keywords": ["fakultas", "program studi", "jurusan"]
+  },
+  {
+    "category": "academics",
+    "question": "Mekanisme perubahan kurikulum ITB bagaimana?",
+    "expected_keywords": ["kurikulum", "perubahan", "mekanisme"]
+  },
+  {
+    "category": "facilities",
+    "question": "Ada berapa fakultas di ITB?",
+    "expected_keywords": ["fakultas", "jumlah", "13"]
+  },
+  {
+    "category": "facilities",
+    "question": "Kapan waktu wisuda paling dekat?",
+    "expected_keywords": ["wisuda", "jadwal", "tanggal"]
+  },
+  {
+    "category": "graduation",
+    "question": "Apa syarat lulus sarjana di ITB?",
+    "expected_keywords": ["S1", "lulus", "144 SKS", "IPK", "2.00"]
+  },
+  {
+    "category": "graduation",
+    "question": "Berapa lama masa studi normal S1 ITB?",
+    "expected_keywords": ["masa studi", "S1", "semester", "8", "tahun"]
+  },
+  {
+    "category": "graduation",
+    "question": "Apa syarat cumlaude, magna cumlaude, dan summa cumlaude S2 di ITB?",
+    "expected_keywords": ["S2", "cumlaude", "magna", "summa", "IPK"]
+  },
+  {
+    "category": "edge_cases",
+    "question": "Saya mau cuti, syaratnya apa?",
+    "expected_keywords": ["cuti", "izin", "akademik"]
+  },
+  {
+    "category": "edge_cases",
+    "question": "Perbedaan kurikulum 2024 dengan 2019?",
+    "expected_keywords": ["kurikulum", "2024", "2019", "perbedaan"]
+  },
+  {
+    "category": "edge_cases",
+    "question": "Apa perbedaan program magister dan doktor?",
+    "expected_keywords": ["magister", "doktor", "S2", "S3", "tingkat"]
+  }
+]

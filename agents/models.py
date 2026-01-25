@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
+from agents.embedding_utils import OpenRouterEmbeddings
 import os
 import warnings
 
@@ -40,7 +41,25 @@ llm_4o_mini = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 #     embedding=jina_embeddings, index_name="informasi-umum-itb-jina"
 # )
 
-embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+# Embedding configuration - supports OpenAI or OpenRouter embeddings
+# Set EMBEDDING_PROVIDER to "openrouter" to use OpenRouter's qwen3-embedding-8b
+# Default: OpenAI text-embedding-3-large
+embedding_provider = os.getenv("EMBEDDING_PROVIDER", "openai").lower()
+
+if embedding_provider == "openrouter":
+    # Use OpenRouter's qwen3-embedding-8b (or custom model via EMBEDDING_MODEL env var)
+    embedding_model = os.getenv("EMBEDDING_MODEL", "qwen/qwen3-embedding-8b")
+    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+    if not openrouter_api_key:
+        raise ValueError("OPENROUTER_API_KEY environment variable is required for openrouter embeddings")
+    # Use custom OpenRouterEmbeddings class to avoid OpenAI library tokenization bug
+    embeddings = OpenRouterEmbeddings(
+        model=embedding_model,
+        api_key=openrouter_api_key,
+    )
+else:
+    # Default: OpenAI text-embedding-3-large
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 # Qdrant vector store initialization
 # Only use API key if provided (required for HTTPS, optional for local HTTP)

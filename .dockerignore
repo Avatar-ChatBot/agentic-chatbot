@@ -24,6 +24,11 @@ build
 *.egg-info
 .vscode
 .idea
+scripts
+qdrant_snapshots
+
+
+
 
 
 

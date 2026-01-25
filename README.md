@@ -328,3 +328,158 @@ Selain itu, penting untuk menguji update di lingkungan *staging* terlebih dahulu
 
 Dokumentasi ini diharapkan dapat membantu tim DevOps dalam memahami, mengonfigurasi, dan melakukan deployment aplikasi *Agentic Chatbot* ITB dengan baik. Jika ada pertanyaan atau masalah selama proses deployment, jangan ragu untuk menghubungi tim pengembang atau merujuk pada dokumentasi tambahan yang tersedia.
 
+## Scripts
+
+Directory `scripts/` contains utility scripts for data migration, parsing, and vector database management.
+
+### Data Migration
+
+#### `migrate_pinecone_to_qdrant.py`
+Migrate vectors from Pinecone to Qdrant (two-step process).
+
+**Step 1 - Extract from Pinecone:**
+```bash
+python scripts/migrate_pinecone_to_qdrant.py --step extract --output pinecone_data.pkl
+```
+
+**Step 2 - Upload to Qdrant:**
+```bash
+python scripts/migrate_pinecone_to_qdrant.py --step upload --input pinecone_data.pkl
+```
+
+Environment variables:
+- `PINECONE_API_KEY` - Pinecone API key (required for extract)
+- `PINECONE_INDEX_NAME` - Pinecone index name (default: informasi-umum-itb)
+- `QDRANT_URL` - Qdrant server URL (required for upload)
+- `QDRANT_API_KEY` - Qdrant API key (optional)
+- `QDRANT_COLLECTION_NAME` - Target collection name (default: informasi-umum-itb)
+
+### Qdrant Snapshot Management
+
+#### `create_qdrant_snapshot.py`
+Create and download a snapshot of a Qdrant collection for backup.
+
+```bash
+python scripts/create_qdrant_snapshot.py --collection informasi-umum-itb --output-dir qdrant_snapshots
+```
+
+This creates a timestamped snapshot file and a symlink to the latest snapshot.
+
+#### `restore_qdrant_snapshot.py`
+Restore a Qdrant collection from a snapshot file. Used internally by Docker on first startup.
+
+```bash
+# Manual restore
+python scripts/restore_qdrant_snapshot.py
+```
+
+Environment variables:
+- `QDRANT_URL` - Qdrant server URL (default: http://qdrant:6333)
+- `QDRANT_API_KEY` - Qdrant API key (optional)
+- `QDRANT_COLLECTION_NAME` - Collection name (default: informasi-umum-itb)
+- `SNAPSHOT_DIR` - Snapshot directory (default: /snapshots)
+- `SNAPSHOT_FILE` - Snapshot filename (default: {collection}_latest.snapshot)
+
+#### `restore_qdrant_snapshot.sh`
+Shell script version of the restore utility, designed to run inside the Qdrant Docker container.
+
+#### `reembed_snapshot.py`
+Re-embed an existing Qdrant collection using a new embedding model.
+
+```bash
+# Re-embed with OpenAI
+python scripts/reembed_snapshot.py --source-collection informasi-umum-itb --provider openai
+
+# Re-embed with OpenRouter (Qwen)
+python scripts/reembed_snapshot.py --source-collection informasi-umum-itb --provider openrouter --embedding-model qwen/qwen3-embedding-8b --create-snapshot
+```
+
+This reads all points from a collection, generates new embeddings, and creates a new collection.
+
+### Data Parsing
+
+#### `parse_peraturan_pdf.py`
+Parse Indonesian legal documents (Peraturan Perundang-undangan) from PDF or text files.
+
+```bash
+# Basic parsing - output to console
+python scripts/parse_peraturan_pdf.py --pdf-path ./docs/PER_29-2025.pdf
+
+# Output to JSON file
+python scripts/parse_peraturan_pdf.py --pdf-path ./docs/PER_29-2025.pdf --output json
+
+# Output to Markdown file
+python scripts/parse_peraturan_pdf.py --pdf-path ./docs/PER_29-2025.pdf --output markdown --output-file ./output.md
+
+# Parse and upload to Qdrant
+python scripts/parse_peraturan_pdf.py --pdf-path ./docs/PER_29-2025.pdf --upload-to-qdrant
+
+# Upload from existing JSON file
+python scripts/parse_peraturan_pdf.py --json-input ./parsed.json --upload-to-qdrant --embedding-provider qwen
+```
+
+The script extracts Pasal (articles) from documents and structures them for RAG systems.
+
+#### `parse_xlsx_admission.py`
+Parse ITB admission information from Excel files using Gemini 2.0 Flash for natural language conversion.
+
+```bash
+# Parse all sheets with caching (first run calls LLM)
+uv run scripts/parse_xlsx_admission.py --upload-to-qdrant
+
+# Re-run using cache (no LLM calls)
+uv run scripts/parse_xlsx_admission.py --upload-to-qdrant
+
+# Re-embed from cache only
+uv run scripts/parse_xlsx_admission.py --from-cache --upload-to-qdrant
+
+# Parse specific sheets only
+uv run scripts/parse_xlsx_admission.py --sheets "Program Studi S1" "Jadwal Pendaftaran Magister S2" --upload-to-qdrant
+
+# Clear cache for a specific sheet
+uv run scripts/parse_xlsx_admission.py --clear-cache "Program Studi S1"
+
+# List cached sheets
+uv run scripts/parse_xlsx_admission.py --list-cache
+```
+
+Environment variables:
+- `QDRANT_URL` - Qdrant server URL
+- `QDRANT_API_KEY` - Qdrant API key (optional)
+- `OPENAI_API_KEY` - OpenAI API key (for OpenAI embeddings)
+- `OPENROUTER_API_KEY` - OpenRouter API key (for Qwen embeddings)
+- `GEMINI_API_KEY` - Google Gemini API key (for Excel parsing)
+
+### Debugging Tools
+
+#### `query_qdrant.py`
+Direct query tool for Qdrant debugging and testing.
+
+```bash
+# Basic search
+python scripts/query_qdrant.py "biaya kuliah"
+
+# Get more results
+python scripts/query_qdrant.py "beasiswa" --top 10
+
+# Use different collection
+python scripts/query_qdrant.py "program studi" --collection informasi-umum-itb-qwen3 --embedding-provider qwen
+
+# Show collection info only
+python scripts/query_qdrant.py "" --info
+
+# Raw JSON output
+python scripts/query_qdrant.py "biaya" --raw
+```
+
+### Parser Modules
+
+#### `parsers/peraturan_parser.py`
+Parser module for Indonesian legal documents. Extracts BAB (chapters) and Pasal (articles) from PDF or text files.
+
+#### `parsers/xlsx_parser.py`
+Parser module for Excel files with LLM-powered natural language conversion. Includes caching support to avoid repeated API calls.
+
+#### `parsers/__init__.py`
+Package initialization for parsers module.
+
