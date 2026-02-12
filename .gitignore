@@ -172,3 +172,7 @@ qdrant_snapshots/*.snapshot
 cache/
 
 .cursor/plans/*
+
+# Large binaries (avoid accidental push)
+scripts/*.dmg
+scripts/sysdesign*.pdf
