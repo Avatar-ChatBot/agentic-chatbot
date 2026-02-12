@@ -104,6 +104,7 @@ class OpenRouterEmbeddings(Embeddings):
         model: str = "qwen/qwen3-embedding-8b",
         api_key: Optional[str] = None,
         base_url: str = "https://openrouter.ai/api/v1",
+        dimensions: Optional[int] = None,
     ):
         """Initialize OpenRouter embeddings.
 
@@ -111,12 +112,15 @@ class OpenRouterEmbeddings(Embeddings):
             model: The model name (e.g., "qwen/qwen3-embedding-8b")
             api_key: OpenRouter API key (defaults to OPENROUTER_API_KEY env var)
             base_url: Base URL for the API
+            dimensions: Optional output dimension (e.g. 4096). Must match your
+                Qdrant collection; omit to use the model's native dimension.
         """
         self.model = model
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         if not self.api_key:
             raise ValueError("OpenRouter API key must be provided or set in OPENROUTER_API_KEY environment variable")
         self.base_url = base_url
+        self.dimensions = dimensions
 
     def _embed_texts(self, texts: List[str]) -> List[List[float]]:
         """Embed a list of texts by calling OpenRouter API directly."""
@@ -128,10 +132,12 @@ class OpenRouterEmbeddings(Embeddings):
             "X-Title": "ITB Chatbot",
         }
 
-        data = {
+        data: dict = {
             "input": texts,
             "model": self.model,
         }
+        if self.dimensions is not None:
+            data["dimensions"] = self.dimensions
 
         response = requests.post(url, headers=headers, json=data, timeout=60)
         response.raise_for_status()

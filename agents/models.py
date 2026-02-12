@@ -52,10 +52,14 @@ if embedding_provider == "openrouter":
     openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
     if not openrouter_api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable is required for openrouter embeddings")
+    # Match Qdrant collection dimension (default 4096 for qwen3-embedding-8b collections)
+    embedding_dimension = os.getenv("EMBEDDING_DIMENSION")
+    dimensions = int(embedding_dimension) if embedding_dimension else 4096
     # Use custom OpenRouterEmbeddings class to avoid OpenAI library tokenization bug
     embeddings = OpenRouterEmbeddings(
         model=embedding_model,
         api_key=openrouter_api_key,
+        dimensions=dimensions,
     )
 else:
     # Default: OpenAI text-embedding-3-large
