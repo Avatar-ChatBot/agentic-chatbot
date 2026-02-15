@@ -29,3 +29,6 @@ wsproto==1.2.0
 yarl==1.17.1
 pydub==0.25.1
 streamlit==1.40.0
+
+# Crawl4AI for web scraping with AI
+crawl4ai[all]==0.8.0

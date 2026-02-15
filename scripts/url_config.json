@@ -1,0 +1,16 @@
+{
+  "urls": [
+    {
+      "url": "https://admission.itb.ac.id/info/international-master-program/",
+      "status": "accessible",
+      "description": "International Master Program",
+      "source_sheets": ["Program Studi Magister dan Pasc", "International Magister and Doct"]
+    },
+    {
+      "url": "https://www.itb.ac.id/",
+      "status": "accessible",
+      "description": "ITB Official Website",
+      "source_sheets": ["Homepage"]
+    }
+  ]
+}

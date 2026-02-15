@@ -163,7 +163,15 @@ cython_debug/
 
 *.out
 
+# Crawl4AI output files
+crawl_output/*
+!crawl_output/.gitkeep
+crawl_results_*.json
+
 # Qdrant snapshots (large binary files)
 qdrant_snapshots/*.snapshot
 # Keep directory structure but ignore snapshot files
 !qdrant_snapshots/.gitkeep
+
+# Crawl4AI API keys (sensitive)
+.llm.env
